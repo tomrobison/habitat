@@ -12,7 +12,14 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
 use std::ptr;
 
-use error::Result;
+use common;
+use hcore;
+use hcore::package::{PackageIdent, PackageInstall};
+use hcore::url::DEFAULT_DEPOT_URL;
+
+use error::{Error, Result};
+
+const MAX_RETRIES: u8 = 4;
 
 pub fn find_command(command: &str) -> Option<PathBuf> {
     // If the command path is absolute and a file exists, then use that.
@@ -52,4 +59,35 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
         libc::execv(prog.as_ptr(), argv.as_mut_ptr());
     }
     Ok(())
+}
+
+pub fn command_from_pkg(command: &str, ident: &PackageIdent, retry: u8) -> Result<PathBuf> {
+    if retry > MAX_RETRIES {
+        return Err(Error::ExecCommandNotFound(command.to_string()));
+    }
+
+    match PackageInstall::load(ident, None) {
+        Ok(pi) => {
+            match try!(find_command_in_pkg(&command, &pi)) {
+                Some(cmd) => Ok(cmd),
+                None => return Err(Error::ExecCommandNotFound(command.to_string())),
+            }
+        }
+        Err(hcore::Error::PackageNotFound(_)) => {
+            println!("Package for {} not found, installing from depot", &ident);
+            try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL, ident));
+            command_from_pkg(&command, &ident, retry + 1)
+        }
+        Err(e) => return Err(Error::from(e)),
+    }
+}
+
+fn find_command_in_pkg(command: &str, pkg_install: &PackageInstall) -> Result<Option<PathBuf>> {
+    for path in try!(pkg_install.paths()) {
+        let candidate = path.join(command);
+        if candidate.is_file() {
+            return Ok(Some(candidate));
+        }
+    }
+    Ok(None)
 }
