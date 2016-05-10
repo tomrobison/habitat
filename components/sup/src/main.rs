@@ -65,10 +65,19 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     if let Some(ref archive) = sub_args.value_of("archive") {
         config.set_archive(archive.to_string());
     }
+
+    /*
     if let Some(ref package) = sub_args.value_of("package") {
         let ident = try!(PackageIdent::from_str(package));
         config.set_package(ident);
     }
+    */
+
+    if let Some(pkgs) = sub_args.values_of("package") {
+            let idents : Vec<PackageIdent> = pkgs.map(|pkg| PackageIdent::from_str(pkg).unwrap()).collect();
+            config.set_packages(idents);
+    }
+
     if let Some(key) = sub_args.value_of("key") {
         config.set_key(key.to_string());
     }
@@ -230,6 +239,7 @@ fn main() {
                         .arg(Arg::with_name("package")
                                  .index(1)
                                  .required(true)
+                                 .multiple(true)
                                  .help("Name of package to start"))
                         .arg(arg_url())
                         .arg(arg_group())
@@ -344,10 +354,10 @@ fn configure(config: &Config) -> Result<()> {
 /// Start a service
 #[allow(dead_code)]
 fn start(config: &Config) -> Result<()> {
-    outputln!("Starting {}",
-              Yellow.bold().paint(config.package().to_string()));
-    try!(start::package(config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(config.package().to_string()));
+    //outputln!("Starting {}",
+    //          Yellow.bold().paint(config.package().to_string()));
+    try!(start::packages(config));
+    //outputln!("Finished with {}",
+    //          Yellow.bold().paint(config.package().to_string()));
     Ok(())
 }

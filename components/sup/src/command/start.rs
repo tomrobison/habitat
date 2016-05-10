@@ -50,11 +50,14 @@
 //!
 
 use std::env;
+use std::thread;
 
 use ansi_term::Colour::Yellow;
 use common::command::package::install;
 use depot_client;
+
 use hcore::fs::CACHE_ARTIFACT_PATH;
+use hcore::package::PackageIdent;
 
 use error::{Error, Result};
 use config::{Config, UpdateStrategy};
@@ -62,6 +65,15 @@ use package::Package;
 use topology::{self, Topology};
 
 static LOGKEY: &'static str = "CS";
+
+
+pub fn packages(config: &Config) -> Result<()> {
+    for ident in config.packages() {
+        println!("Got a package: {}", &ident);
+        try!(package(&config, ident));
+    }
+    Ok(())
+}
 
 /// Creates a [Package](../../pkg/struct.Package.html), then passes it to the run method of the
 /// selected [topology](../../topology).
@@ -71,8 +83,8 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
-pub fn package(config: &Config) -> Result<()> {
-    match Package::load(config.package(), None) {
+pub fn package(config: &Config, ident: &PackageIdent) -> Result<()> {
+    let pkg : Package = match Package::load(ident, None) {
         Ok(package) => {
             let update_strategy = config.update_strategy();
             match update_strategy {
@@ -87,8 +99,7 @@ pub fn package(config: &Config) -> Result<()> {
                         //
                         // If the operator does not specify a version number they will automatically receive
                         // updates for any releases, regardless of version number, for the started  package.
-                        let latest_pkg_data = try!(depot_client::show_package(&url,
-                                                                              config.package()));
+                        let latest_pkg_data = try!(depot_client::show_package(&url, &ident));
                         let latest_ident = latest_pkg_data.ident.as_ref();
                         if latest_ident > package.ident() {
                             outputln!("Downloading latest version from remote: {}", latest_ident);
@@ -103,24 +114,29 @@ pub fn package(config: &Config) -> Result<()> {
                     }
                 }
             }
-            start_package(package, config)
+            package
         }
         Err(_) => {
-            outputln!("{} is not installed",
-                      Yellow.bold().paint(config.package().to_string()));
+            // outputln!("{} is not installed",
+            //          Yellow.bold().paint(config.package().to_string()));
             match *config.url() {
                 Some(ref url) => {
-                    outputln!("Searching for {} in remote {}",
-                              Yellow.bold().paint(config.package().to_string()),
-                              url);
-                    let new_pkg_data = try!(install::from_url(url, config.package()));
+                    // outputln!("Searching for {} in remote {}",
+                    //          Yellow.bold().paint(config.package().to_string()),
+                    //          url);
+                    let new_pkg_data = try!(install::from_url(url, &ident));
                     let package = try!(Package::load(new_pkg_data.ident.as_ref(), None));
-                    start_package(package, config)
+                    package
                 }
-                None => Err(sup_error!(Error::PackageNotFound(config.package().clone()))),
+                None => return Err(sup_error!(Error::PackageNotFound(ident.clone()))),
             }
         }
-    }
+    };
+
+    let child = thread::spawn(move || start_package(pkg, config.clone()));
+    let res = child.join();
+    Ok(())
+
 }
 
 fn start_package(package: Package, config: &Config) -> Result<()> {

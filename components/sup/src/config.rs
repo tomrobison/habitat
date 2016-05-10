@@ -75,7 +75,7 @@ impl Default for Command {
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
     command: Command,
-    package: PackageIdent,
+    packages: Vec<PackageIdent>,
     url: Option<String>,
     topology: Topology,
     group: String,
@@ -354,13 +354,13 @@ impl Config {
         self
     }
 
-    pub fn set_package(&mut self, ident: PackageIdent) -> &mut Config {
-        self.package = ident;
+    pub fn set_packages(&mut self, idents: Vec<PackageIdent>) -> &mut Config {
+        self.packages = idents;
         self
     }
 
-    pub fn package(&self) -> &PackageIdent {
-        &self.package
+    pub fn packages(&self) -> &Vec<PackageIdent> {
+        &self.packages
     }
 
     pub fn set_organization(&mut self, org: String) -> &mut Config {
