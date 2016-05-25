@@ -490,6 +490,34 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+
+/// ---------------------------------------------------------------------
+/// Origin maintenance
+/// TODO: move to it's own module?
+/// ---------------------------------------------------------------------
+/*
+fn create_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    match depot.datastore.origin_keys.all(origin) {
+        Ok(revisions) => {
+            let body = json::encode(&revisions).unwrap();
+            Ok(Response::with((status::Ok, body)))
+        }
+        Err(e) => {
+            error!("list_origin_keys:1, err={:?}", e);
+            Ok(Response::with(status::InternalServerError))
+        }
+    }
+
+}
+*/
+
+
 struct Cors;
 
 impl AfterMiddleware for Cors {
@@ -547,7 +575,18 @@ pub fn router(config: Config) -> Result<Chain> {
         get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot17, r),
         get "/origins/:origin/keys/latest" => move |r: &mut Request| download_latest_origin_key(&depot19, r),
         get "/origins/:origin/keys/:revision" => move |r: &mut Request| download_origin_key(&depot18, r),
-        post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r)
+        post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r),
+
+        /*
+        let depot21 = depot.clone();
+        let depot22 = depot.clone();
+        let depot23 = depot.clone();
+
+        // TODO: security
+        //delete "/origins/:origin" => move |r: &,ut Request| delete_origin(&depot21, r),
+        //get    "/origins/:origin/users" => move |r: &,ut Request| list_origin_users(&depot22, r),
+        post   "/origins/:origin" => move |r: &,ut Request| create_origin(&depot23, r)
+        */
         );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);

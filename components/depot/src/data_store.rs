@@ -18,6 +18,8 @@ use rustc_serialize::json;
 
 use error::{Error, Result};
 
+use tables::*;
+
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub packages: PackagesTable,
@@ -184,7 +186,7 @@ impl Table for PackagesIndex {
         "package:ident:index"
     }
 }
-
+/*
 /// Contains a mapping of view names and the packages found within that view.
 ///
 /// This is how packages will be "promoted" between environments without duplicating data on disk.
@@ -277,7 +279,10 @@ impl Table for PkgViewIndex {
         "pkg:view:index"
     }
 }
+*/
 
+
+/*
 pub struct ViewPkgIndex {
     pool: Arc<ConnectionPool>,
 }
@@ -336,9 +341,9 @@ impl Table for ViewPkgIndex {
         "view:pkg:index"
     }
 }
+*/
 
-
-
+/*
 pub struct OriginKeysTable {
     pool: Arc<ConnectionPool>,
 }
@@ -408,3 +413,4 @@ impl Table for OriginKeysTable {
         "origin_keys"
     }
 }
+*/

@@ -5,6 +5,31 @@ baseUri: http://api.samplehost.com
 # in alphabetical order
 /origins:
   /{origin}:
+    delete:
+      description: Delete an origin
+      responses:
+        200:
+          description: "Successfully deleted origin"
+        404:
+          description: "Origin doesn't exist or unauthorized to delete origin TODO: 401/404 etc"
+    post:
+      description: Create an origin
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {}
+        409:
+          description: "Origin already exists"
+        422:
+          description: "Invalid origin format"
+          body:
+            application/json:
+              example: |
+                {
+                  "reason":"Origins must be in the format TODO"
+                }
     /keys:
       get:
         description: Return a list of key revisions for an organization.
@@ -46,7 +71,12 @@ baseUri: http://api.samplehost.com
                   core-20160423193745
 
                   Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
-
+    /secret_keys:
+      get:
+          description: TODO Download LATEST secret keys for an organization?
+          responses:
+            200:
+            404:
 /pkgs:
   /{origin}:
     get:
@@ -165,3 +195,16 @@ baseUri: http://api.samplehost.com
                     200:
                     404:
                     500:
+/users:
+  /{user}:
+    /origins:
+      get:
+        description: "Returns a list of origins for an authenticated used"
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  ["foo", "bar", "baz"]
+          404:
+            description: "User does not exist"
