@@ -6,13 +6,19 @@
 // open source license such as the Apache 2.0 License.
 
 
+
+extern crate bitflags;
 extern crate habitat_core as hcore;
 #[macro_use]
 extern crate hyper;
+extern crate protobuf;
 extern crate redis;
 extern crate rustc_serialize;
 
 pub mod data_object;
+pub mod user;
+mod message;
+
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }

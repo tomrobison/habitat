@@ -20,6 +20,7 @@ pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub packages: PackagesTable,
     pub views: ViewsTable,
+    pub origins: OriginsTable,
     pub origin_keys: OriginKeysTable,
     pub origin_secret_keys: OriginSecretKeysTable,
 }
@@ -35,16 +36,18 @@ impl DataStore {
         let pool2 = pool.clone();
         let pool3 = pool.clone();
         let pool4 = pool.clone();
+        let pool5 = pool.clone();
 
         let packages = PackagesTable::new(pool1);
         let views = ViewsTable::new(pool2);
         let origin_keys = OriginKeysTable::new(pool3);
         let origin_secret_keys = OriginSecretKeysTable::new(pool4);
-
+        let origins = OriginsTable::new(pool5);
         Ok(DataStore {
             pool: pool,
             packages: packages,
             views: views,
+            origins: origins,
             origin_keys: origin_keys,
             origin_secret_keys: origin_secret_keys,
         })

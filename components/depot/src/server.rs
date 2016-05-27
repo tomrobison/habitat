@@ -523,6 +523,89 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+
+fn create_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    println!("Create origin {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    /*
+    let owner = match params.find("user") {
+        Some(owner) => owner,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    */
+    let owner = "dparfitt";
+    println!("Origin = {}, owner = {}", &origin, &owner);
+    // TODO: hardcoded owner
+    try!(depot.datastore.origins.create(&origin, &owner));
+    let mut response = Response::with((status::Created,
+                                       format!("/origins/{}/users/{}", &origin, &owner)));
+    Ok(response)
+}
+
+//fn create_user(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+//}
+
+fn delete_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    println!("Delete origin {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let mut response = Response::with((status::Ok));
+    // TODO: who can delete?
+    try!(depot.datastore.origins.delete(&origin));
+    Ok(response)
+}
+
+fn add_user_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    println!("Add user to origin {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let user = match params.find("user") {
+        Some(user) => user,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    try!(depot.datastore.origins.add_member(&origin, &user));
+
+    let mut response = Response::with((status::Ok));
+    Ok(response)
+}
+
+fn remove_user_from_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+     println!("Remove user from origin {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let user = match params.find("user") {
+        Some(user) => user,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    try!(depot.datastore.origins.delete_member(&origin, &user));
+
+    let mut response = Response::with((status::Ok));
+    Ok(response)
+}
+
+
 struct Cors;
 
 impl AfterMiddleware for Cors {
@@ -555,6 +638,10 @@ pub fn router(config: Config) -> Result<Chain> {
     let depot19 = depot.clone();
     let depot20 = depot.clone();
     let depot21 = depot.clone();
+    let depot22 = depot.clone();
+    let depot23 = depot.clone();
+    let depot24 = depot.clone();
+    let depot25 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
@@ -585,16 +672,13 @@ pub fn router(config: Config) -> Result<Chain> {
         post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r),
         post "/origins/:origin/secret_keys/:revision" => move |r: &mut Request| upload_origin_secret_key(&depot21, r),
 
-        /*
-        let depot21 = depot.clone();
-        let depot22 = depot.clone();
-        let depot23 = depot.clone();
-
-        // TODO: security
-        //delete "/origins/:origin" => move |r: &,ut Request| delete_origin(&depot21, r),
-        //get    "/origins/:origin/users" => move |r: &,ut Request| list_origin_users(&depot22, r),
-        post   "/origins/:origin" => move |r: &,ut Request| create_origin(&depot23, r)
-        */
+        // initial origin creation
+        post   "/origins/:origin/users" => move |r: &mut Request| create_origin(&depot22, r),
+        delete "/origins/:origin" => move |r: &mut Request| delete_origin(&depot23, r),
+        // add user to origin
+        put "/origins/:origin/users/:user" => move |r: &mut Request| add_user_to_origin(&depot24, r),
+        // remove a user from an origin
+        delete "/origins/:origin/users/:user" => move |r: &mut Request| remove_user_from_origin(&depot25, r)
         );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);

@@ -5,8 +5,6 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-
-/*
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -25,16 +23,13 @@ impl OriginsTable {
         OriginsTable { pool: pool }
     }
 
-    pub fn all(&self, origin: &str) -> Result<Vec<data_object::OriginyIdent>> {
+    pub fn list_users(&self, origin: &str) -> Result<Vec<String>> {
         let conn = self.pool().get().unwrap();
         match conn.smembers::<String, Vec<String>>(Self::key(&origin.to_string())) {
             Ok(ids) => {
                 let ids = ids.iter()
                              .map(|rev| {
-                                 data_object::OriginKeyIdent::new(origin.to_string(),
-                                                     rev.clone(),
-                                                    format!("/origins/{}/keys/{}",
-                                                            &origin, &rev))
+                                 rev.clone()
                              })
                              .collect();
                 Ok(ids)
@@ -43,10 +38,41 @@ impl OriginsTable {
         }
     }
 
-    pub fn write(&self, origin: &str, revision: &str) -> Result<()> {
+    pub fn create(&self, origin: &str, owner: &str) -> Result<()> {
         let conn = self.pool().get().unwrap();
-        try!(conn.sadd(OriginsTable::key(&origin.to_string()), revision));
+        try!(conn.sadd(OriginsTable::key(&origin.to_string()), owner));
         Ok(())
+    }
+
+
+    pub fn add_member(&self, origin: &str, username: &str) -> Result<()> {
+        let conn = self.pool().get().unwrap();
+        try!(conn.sadd(OriginsTable::key(&origin.to_string()), username));
+        Ok(())
+    }
+
+    pub fn delete_member(&self, origin: &str, username: &str) -> Result<()> {
+        let conn = self.pool().get().unwrap();
+        try!(conn.srem(OriginsTable::key(&origin.to_string()), username));
+        Ok(())
+    }
+
+    pub fn delete(&self, origin: &str) -> Result<()> {
+        let conn = self.pool().get().unwrap();
+        try!(conn.del(OriginsTable::key(&origin.to_string())));
+        Ok(())
+    }
+
+    pub fn is_origin(&self, origin: &str) -> Result<bool> {
+        let conn = self.pool().get().unwrap();
+        let val = try!(conn.exists(OriginsTable::key(&origin.to_string())));
+        Ok(val)
+    }
+
+    pub fn is_member(&self, origin: &str, username: &str) -> Result<bool> {
+        let conn = self.pool().get().unwrap();
+        let val = try!(conn.sismember(OriginsTable::key(&origin.to_string()), username));
+        Ok(val)
     }
 }
 
@@ -58,7 +84,8 @@ impl Table for OriginsTable {
     }
 
     fn prefix() -> &'static str {
-        "origin"
+        "origins"
     }
 }
-*/
+
+

@@ -6,6 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 //pub use self::origins::OriginsTable;
+pub use self::origins::*;
 pub use self::origin_keys::*;
 pub use self::packages::*;
 pub use self::views::*;

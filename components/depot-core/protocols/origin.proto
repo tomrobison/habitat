@@ -1,0 +1,7 @@
+package origin;
+
+message Origin {
+  required string name = 1;
+  repeated string members = 2;
+}
+
