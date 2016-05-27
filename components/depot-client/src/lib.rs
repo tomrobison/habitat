@@ -94,6 +94,27 @@ pub fn put_origin_key(depot: &str,
     upload(url, &mut file, progress)
 }
 
+
+
+/// Upload a secret origin key to a remote Depot.
+///
+/// # Failures
+///
+/// * Remote Depot is not available
+/// * File cannot be read
+pub fn put_origin_secret_key(depot: &str,
+                             origin: &str,
+                             revision: &str,
+                             src_path: &Path,
+                             progress: Option<&mut DisplayProgress>)
+                             -> Result<()> {
+    let url = try!(Url::parse(&format!("{}/origins/{}/secret_keys/{}", depot, &origin, &revision)));
+
+    let mut file = try!(File::open(src_path));
+    debug!("Reading from {}", src_path.display());
+    upload(url, &mut file, progress)
+}
+
 /// Download the latest release of a package.
 ///
 /// An optional version and release can be specified

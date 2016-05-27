@@ -88,6 +88,39 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    debug!("Upload Origin Secret Key {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let revision = match params.find("revision") {
+        Some(revision) => revision,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    debug!("Origin = {}, revision = {}", &origin, &revision);
+
+    if !try!(depot.datastore.origin_keys.exists(&origin, &revision)) {
+        println!("Public key must exist as well");
+        return Ok(Response::with(status::NotFound));
+    }
+
+    let mut content = String::new();
+    // TODO: unwrap/error stuff
+    req.body.read_to_string(&mut content).unwrap();
+    // we don't actually need a revision here, but if anything changes 
+    // regarding the storage of the key, it's nice to have it plumbed through already
+    depot.datastore.origin_secret_keys.write(&origin, &revision, &content).unwrap();
+
+    // TODO: this response doesn't/won't have a Location
+    let mut response = Response::with((status::Created,
+                                       format!("/origins/{}/keys/{}", &origin, &revision)));
+    Ok(response)
+}
+
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Upload {:?}", req);
     let checksum_from_param = match extract_query_value("checksum", req) {
@@ -490,34 +523,6 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
-
-/// ---------------------------------------------------------------------
-/// Origin maintenance
-/// TODO: move to it's own module?
-/// ---------------------------------------------------------------------
-/*
-fn create_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
-    match depot.datastore.origin_keys.all(origin) {
-        Ok(revisions) => {
-            let body = json::encode(&revisions).unwrap();
-            Ok(Response::with((status::Ok, body)))
-        }
-        Err(e) => {
-            error!("list_origin_keys:1, err={:?}", e);
-            Ok(Response::with(status::InternalServerError))
-        }
-    }
-
-}
-*/
-
-
 struct Cors;
 
 impl AfterMiddleware for Cors {
@@ -549,6 +554,7 @@ pub fn router(config: Config) -> Result<Chain> {
     let depot18 = depot.clone();
     let depot19 = depot.clone();
     let depot20 = depot.clone();
+    let depot21 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
@@ -575,7 +581,9 @@ pub fn router(config: Config) -> Result<Chain> {
         get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot17, r),
         get "/origins/:origin/keys/latest" => move |r: &mut Request| download_latest_origin_key(&depot19, r),
         get "/origins/:origin/keys/:revision" => move |r: &mut Request| download_origin_key(&depot18, r),
+
         post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r),
+        post "/origins/:origin/secret_keys/:revision" => move |r: &mut Request| upload_origin_secret_key(&depot21, r),
 
         /*
         let depot21 = depot.clone();

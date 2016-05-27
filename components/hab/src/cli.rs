@@ -116,11 +116,19 @@ pub fn get() -> App<'static, 'static> {
                          contents and writes the key to disk")
                  )
                  (@subcommand upload =>
-                        (about: "Upload a public origin key to the depot")
-                        (@arg FILE: +required {file_exists}
-                         "Path to a local public origin key file on disk")
-                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                         "Use a specific Depot URL")
+                        (about: "Upload origin keys to the depot")
+                            (@arg ORIGIN: +required 
+                             "The origin name")
+                            (@arg WITH_SECRET: -s --secret
+                            "todo")
+
+                            (@arg PUBLIC_FILE: {file_exists}
+                            "Path to a local public origin key file on disk")
+                            (@arg SECRET_FILE: {file_exists}
+                            "Path to a local secret origin key file on disk")
+                            (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                            "Use a specific Depot URL")
+
                  )
             )
         )

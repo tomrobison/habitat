@@ -134,59 +134,168 @@ pub mod key {
         }
     }
 
-    pub mod upload {
+    // TODO
+    // pub mod upload {
+    // use std::fs::File;
+    // use std::io::{BufRead, BufReader};
+    // use std::path::Path;
+    //
+    // use ansi_term::Colour::{Blue, Green, Yellow};
+    // use common::command::ProgressBar;
+    // use depot_client;
+    // use hcore;
+    // use hcore::crypto::keys::parse_name_with_rev;
+    //
+    // use error::{Error, Result};
+    //
+    //
+    // pub fn start(depot: &str,
+    // public_keyfile: &Path,
+    // secret_keyfile: Option<&Path>)
+    // -> Result<()> {
+    // println!("{}",
+    // Yellow.bold()
+    // .paint(format!("» Uploading public origin key {}",
+    // public_keyfile.display())));
+    //
+    // let name_with_rev = {
+    // let f = try!(File::open(&public_keyfile));
+    // let f = BufReader::new(f);
+    // let mut lines = f.lines();
+    // let _ = match lines.next() {
+    // Some(val) => {
+    // let val = try!(val);
+    // if &val != "SIG-PUB-1" {
+    // let msg = format!("Unsupported version: {}", &val);
+    // return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+    // }
+    // ()
+    // }
+    // None => {
+    // let msg = "Corrupt key file, can't read file version".to_string();
+    // return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+    // }
+    // };
+    // match lines.next() {
+    // Some(val) => try!(val),
+    // None => {
+    // let msg = "Corrupt key file, can't read name with rev".to_string();
+    // return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+    // }
+    // }
+    // };
+    //
+    // let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+    // println!("{} {}",
+    // Green.bold().paint("↑ Uploading"),
+    // public_keyfile.display());
+    // let mut progress = ProgressBar::default();
+    // try!(depot_client::put_origin_key(depot,
+    // &name,
+    // &rev,
+    // public_keyfile,
+    // Some(&mut progress)));
+    // println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
+    // println!("{}",
+    // Blue.paint(format!("★ Upload of public origin key {} complete.",
+    // &name_with_rev)));
+    // Ok(())
+    // }
+    // }
+    //
+
+
+    pub mod upload_latest {
         use std::fs::File;
         use std::io::{BufRead, BufReader};
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Green, Yellow};
+        use ansi_term::Colour::{Blue, Green};
         use common::command::ProgressBar;
         use depot_client;
         use hcore;
         use hcore::crypto::keys::parse_name_with_rev;
-
+        use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
+        
         use error::{Error, Result};
 
-        pub fn start(depot: &str, keyfile: &Path) -> Result<()> {
-            println!("{}",
-                     Yellow.bold()
-                           .paint(format!("» Uploading public origin key {}", keyfile.display())));
-            let name_with_rev = {
-                let f = try!(File::open(&keyfile));
-                let f = BufReader::new(f);
-                let mut lines = f.lines();
-                let _ = match lines.next() {
-                    Some(val) => {
-                        let val = try!(val);
-                        if &val != "SIG-PUB-1" {
-                            let msg = format!("Unsupported version: {}", &val);
-                            return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
-                        }
-                        ()
-                    }
-                    None => {
-                        let msg = "Corrupt key file, can't read file version".to_string();
+        fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {
+            let f = try!(File::open(&keyfile));
+            let f = BufReader::new(f);
+            let mut lines = f.lines();
+            let _ = match lines.next() {
+                Some(val) => {
+                    let val = try!(val);
+                    if &val != expected_vsn {
+                        let msg = format!("Unsupported version: {}", &val);
                         return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
                     }
-                };
-                match lines.next() {
-                    Some(val) => try!(val),
-                    None => {
-                        let msg = "Corrupt key file, can't read name with rev".to_string();
-                        return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
-                    }
+                    ()
+                }
+                None => {
+                    let msg = "Corrupt key file, can't read file version".to_string();
+                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
                 }
             };
+            let name_with_rev = match lines.next() {
+                Some(val) => try!(val),
+                None => {
+                    let msg = "Corrupt key file, can't read name with rev".to_string();
+                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+                }
+            };
+            Ok(name_with_rev)
+        }
+
+
+        pub fn start(depot: &str, origin: &str, with_secret: bool, cache: &Path) -> Result<()> {
+            let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
+            let public_keyfile = try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(),
+                                                                      cache));
+
+
+            // TODO: vsn constant
+            let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
+
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+
+
             println!("{} {}",
-                     Green.bold().paint("↑ Uploading"),
-                     keyfile.display());
+                     Green.bold().paint("↑ Uploading public key"),
+                     public_keyfile.display());
             let mut progress = ProgressBar::default();
-            try!(depot_client::put_origin_key(depot, &name, &rev, keyfile, Some(&mut progress)));
+            try!(depot_client::put_origin_key(depot,
+                                              &name,
+                                              &rev,
+                                              &public_keyfile,
+                                              Some(&mut progress)));
             println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
             println!("{}",
                      Blue.paint(format!("★ Upload of public origin key {} complete.",
                                         &name_with_rev)));
+
+
+            if with_secret {
+                let secret_keyfile = try!(SigKeyPair::get_secret_key_path(&latest.name_with_rev(),
+                                                                          cache));
+
+                let name_with_rev = try!(get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION));
+                println!("{} {}",
+                         Green.bold().paint("↑ Uploading secret key"),
+                         secret_keyfile.display());
+                let mut progress = ProgressBar::default();
+                try!(depot_client::put_origin_secret_key(depot,
+                                                         &name,
+                                                         &rev,
+                                                         &secret_keyfile,
+                                                         Some(&mut progress)));
+                println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
+                println!("{}",
+                         Blue.paint(format!("★ Upload of secret origin key {} complete.",
+                                            &name_with_rev)));
+            }
+
+
             Ok(())
         }
     }

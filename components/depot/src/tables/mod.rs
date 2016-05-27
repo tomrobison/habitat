@@ -5,8 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-pub use self::origins::OriginsTable;
-pub use self::origin_keys::OriginKeysTable;
+//pub use self::origins::OriginsTable;
+pub use self::origin_keys::*;
 pub use self::packages::*;
 pub use self::views::*;
 

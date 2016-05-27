@@ -47,6 +47,12 @@ impl OriginKeysTable {
         Ok(())
     }
 
+    pub fn exists(&self, origin: &str, revision: &str) -> Result<bool> {
+        let conn = self.pool().get().unwrap();
+        let val = try!(conn.sismember(OriginKeysTable::key(&origin.to_string()), revision));
+        Ok(val)
+    }
+
     /// return the latest revision for a given origin key
     pub fn latest(&self, origin: &str) -> Result<String> {
         let conn = self.pool().get().unwrap();
@@ -83,3 +89,45 @@ impl Table for OriginKeysTable {
         "origin_keys"
     }
 }
+
+/// Origin secret keys table
+pub struct OriginSecretKeysTable {
+    pool: Arc<ConnectionPool>,
+}
+
+impl OriginSecretKeysTable {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        OriginSecretKeysTable { pool: pool }
+    }
+
+    // TODO: is storing the keys as plain text ok?
+    // TODO: do we use user/service keys to encrypt/decrypt in-memory keys?
+    pub fn write(&self, origin: &str, _revision: &str, body: &str) -> Result<()> {
+        let conn = self.pool().get().unwrap();
+        try!(conn.set(OriginSecretKeysTable::key(&origin.to_string()), body));
+        Ok(())
+    }
+
+    pub fn get(&self, id: &str) -> Result<String> {
+        let conn = self.pool().get().unwrap();
+        match conn.get::<String, String>(Self::key(&id.to_string())) {
+            Ok(body) => {
+                Ok(body)
+            }
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+}
+
+impl Table for OriginSecretKeysTable {
+    type IdType = String;
+
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+
+    fn prefix() -> &'static str {
+        "origin_secret_keys"
+    }
+}
+
