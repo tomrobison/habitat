@@ -23,7 +23,7 @@ impl OriginsTable {
         OriginsTable { pool: pool }
     }
 
-    pub fn list_users(&self, origin: &str) -> Result<Vec<String>> {
+    pub fn list_members(&self, origin: &str) -> Result<Vec<String>> {
         let conn = self.pool().get().unwrap();
         match conn.smembers::<String, Vec<String>>(Self::key(&origin.to_string())) {
             Ok(ids) => {

@@ -343,11 +343,21 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
 
     init();
 
+    /*
+    let sym_key = match m.value_of("SYM") {
+        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        None => None,
+    };
+    */
+
     if m.is_present("ORIGIN") {
         let origin = m.value_of("ORIGIN").unwrap();
         // you can either specify files, or infer the latest key names
         let with_secret = m.is_present("WITH_SECRET");
-        command::origin::key::upload_latest::start(url, origin, with_secret, &default_cache_key_path(fs_root_path))
+        command::origin::key::upload_latest::start(url,
+                                                   origin,
+                                                   with_secret,
+                                                   &default_cache_key_path(fs_root_path))
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));

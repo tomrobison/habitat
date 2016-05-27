@@ -123,16 +123,17 @@ pub fn get() -> App<'static, 'static> {
                                     "Path to a local public origin key file on disk")
                         )
                         (about: "Upload origin keys to the depot")
-                            (@arg WITH_SECRET: -s --secret 
-                                conflicts_with[PUBLIC_FILE]  
-                                "Upload secret key in addition to the public key")
+                        (@arg WITH_SECRET: -s --secret
+                            conflicts_with[PUBLIC_FILE]
+                            "Upload secret key in addition to the public key")
 
-                            (@arg SECRET_FILE: --secfile +takes_value {file_exists}
-                             conflicts_with[ORIGIN]
-                            "Path to a local secret origin key file on disk")
-                            (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                            "Use a specific Depot URL")
-
+                        (@arg SECRET_FILE: --secfile +takes_value {file_exists}
+                            conflicts_with[ORIGIN]
+                        "Path to a local secret origin key file on disk")
+                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                        "Use a specific Depot URL")
+                        (@arg SYM: -r --ring +takes_value
+                        "Symmetric key name, which will encrypt the secret key in memory")
                  )
             )
         )

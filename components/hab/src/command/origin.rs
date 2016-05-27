@@ -187,7 +187,9 @@ pub mod key {
 
         pub fn start(depot: &str,
                      public_keyfile: &Path,
-                     secret_keyfile: Option<&Path>)
+                     secret_keyfile: Option<&Path>
+                     //sym_key: Option<&SymKey>,
+                     )
                      -> Result<()> {
             println!("{}",
                      Yellow.bold()
@@ -211,7 +213,8 @@ pub mod key {
                 }
                 Err(depot_client::Error::HTTP(_)) => {
                     println!("{} {}",
-                             Yellow.bold().paint("✓ Public key revision already exists in the depot"),
+                             Yellow.bold()
+                                 .paint("✓ Public key revision already exists in the depot"),
                              &name_with_rev);
                 }
                 Err(e) => {
@@ -259,7 +262,12 @@ pub mod key {
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
         use super::get_name_with_rev;
 
-        pub fn start(depot: &str, origin: &str, with_secret: bool, cache: &Path) -> Result<()> {
+        pub fn start(depot: &str,
+                     origin: &str,
+                     with_secret: bool,
+                     //sym_key: Option<&SymKey>,
+                     cache: &Path)
+                     -> Result<()> {
             let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
             let public_keyfile = try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(),
                                                                       cache));
@@ -288,7 +296,8 @@ pub mod key {
                 }
                 Err(depot_client::Error::HTTP(_)) => {
                     println!("{} {}",
-                             Yellow.bold().paint("✓ Public key revision already exists in the depot"),
+                             Yellow.bold()
+                                 .paint("✓ Public key revision already exists in the depot"),
                              &name_with_rev);
                 }
                 Err(e) => {
