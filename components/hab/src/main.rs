@@ -341,18 +341,18 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
 
-    // TODO: DEPOT_URL might be null
-    let origin = m.value_of("ORIGIN").unwrap();
-    // you can either specify files, or infer the latest key names
-    let with_secret = m.is_present("WITH_SECRET");
     init();
 
-    //let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
-    //let secret_keyfile = m.value_of("SECRET_FILE").and_then(|f| Path::new(f));
-
-    //command::origin::key::upload::start(url, &keyfile, None)
-
-    command::origin::key::upload_latest::start(url, origin, with_secret, &default_cache_key_path(fs_root_path))
+    if m.is_present("ORIGIN") {
+        let origin = m.value_of("ORIGIN").unwrap();
+        // you can either specify files, or infer the latest key names
+        let with_secret = m.is_present("WITH_SECRET");
+        command::origin::key::upload_latest::start(url, origin, with_secret, &default_cache_key_path(fs_root_path))
+    } else {
+        let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
+        let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
+        command::origin::key::upload::start(url, &keyfile, secret_keyfile)
+    }
 }
 
 fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {

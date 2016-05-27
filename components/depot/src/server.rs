@@ -104,7 +104,7 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     debug!("Origin = {}, revision = {}", &origin, &revision);
 
     if !try!(depot.datastore.origin_keys.exists(&origin, &revision)) {
-        println!("Public key must exist as well");
+        debug!("Public key doesn't exist for this origin and revision");
         return Ok(Response::with(status::NotFound));
     }
 

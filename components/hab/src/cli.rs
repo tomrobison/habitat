@@ -18,11 +18,11 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
-                          .about("Alias for 'config apply'")
-                          .setting(AppSettings::Hidden);
+        .about("Alias for 'config apply'")
+        .setting(AppSettings::Hidden);
     let alias_install = sub_package_install()
-                            .about("Alias for 'pkg install'")
-                            .setting(AppSettings::Hidden);
+        .about("Alias for 'pkg install'")
+        .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
@@ -116,15 +116,19 @@ pub fn get() -> App<'static, 'static> {
                          contents and writes the key to disk")
                  )
                  (@subcommand upload =>
+                        (@group upload =>
+                            (@attributes +required)
+                            (@arg ORIGIN: +required "The origin name")
+                            (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
+                                    "Path to a local public origin key file on disk")
+                        )
                         (about: "Upload origin keys to the depot")
-                            (@arg ORIGIN: +required 
-                             "The origin name")
-                            (@arg WITH_SECRET: -s --secret
-                            "todo")
+                            (@arg WITH_SECRET: -s --secret 
+                                conflicts_with[PUBLIC_FILE]  
+                                "Upload secret key in addition to the public key")
 
-                            (@arg PUBLIC_FILE: {file_exists}
-                            "Path to a local public origin key file on disk")
-                            (@arg SECRET_FILE: {file_exists}
+                            (@arg SECRET_FILE: --secfile +takes_value {file_exists}
+                             conflicts_with[ORIGIN]
                             "Path to a local secret origin key file on disk")
                             (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                             "Use a specific Depot URL")

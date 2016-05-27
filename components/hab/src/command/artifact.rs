@@ -158,7 +158,7 @@ pub mod upload {
                      ident.archive_name().unwrap(),
                      archives_dir.display());
             return Err(Error::FileNotFound(archives_dir.to_string_lossy()
-                                                       .into_owned()));
+                .into_owned()));
         }
     }
 }
