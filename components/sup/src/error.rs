@@ -40,6 +40,9 @@ use std::string;
 use std::sync::mpsc;
 
 use ansi_term::Colour::Red;
+// TODO
+extern crate backtrace;
+use backtrace::{Backtrace, Symbol};
 use handlebars;
 use hyper;
 use rustc_serialize::json;
@@ -266,27 +269,9 @@ impl From<net::AddrParseError> for SupError {
     }
 }
 
-extern crate backtrace;
-use backtrace::{Backtrace, Symbol};
 impl From<common::Error> for SupError {
     fn from(err: common::Error) -> SupError {
-        let current_backtrace = Backtrace::new();
-        println!("{:?}", &current_backtrace);
-        let frame = &current_backtrace.frames()[3];
-        let sym = &frame.symbols()[0];
-        let name =  sym.name().unwrap();
-        let filename = &sym.filename().as_ref().unwrap().to_str().unwrap().to_string();
-        let line = &sym.lineno().unwrap();
-        let newerr = Error::HabitatCommon(err);
-        SupError { err: newerr, logkey: name.to_string(), file: filename.clone(), line: *line, column: 0 }
-
-        /*
-        let name =  sym.name().as_ref().unwrap().as_str().unwrap().to_string();
-        let filename = &sym.filename().as_ref().unwrap().to_str().unwrap().to_string();
-        //let () = filename;
-        */
-        //sup_error!(Error::HabitatCommon(err))
-        //SupError { err: err.err, logkey: err.logkey, line: err.line, column: err.column  .. err }
+        rewrap_error!(Error::HabitatCommon(err))
     }
 }
 

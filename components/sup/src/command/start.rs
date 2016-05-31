@@ -74,6 +74,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
+use error::SupError;
 pub fn package(config: &Config) -> Result<()> {
     match Package::load(config.package(), None) {
         Ok(package) => {

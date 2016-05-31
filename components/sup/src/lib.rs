@@ -75,6 +75,26 @@ macro_rules! sup_error {
 }
 
 #[macro_export]
+macro_rules! rewrap_error {
+    ($p: expr) => {
+        {
+            use $crate::error::SupError;
+            let current_backtrace = Backtrace::new();
+            println!("----------------------------------");
+            println!("{:?}", &current_backtrace);
+            println!("----------------------------------");
+            let frame = &current_backtrace.frames()[3];
+            let sym = &frame.symbols()[0];
+            let name =  sym.name().unwrap();
+            let filename = &sym.filename().as_ref().unwrap().to_str().unwrap().to_string();
+            let line = &sym.lineno().unwrap();
+            SupError { err: $p, logkey: name.to_string(), file: filename.clone(), line: *line, column: 0 }
+            //SupError::new($p, String::from(LOGKEY), String::from(file!()), line!(), column!())
+        }
+    }
+}
+
+#[macro_export]
 /// Works the same as the print! macro, but uses our StructuredOutput formatter.
 macro_rules! output {
     ($content: expr) => {
