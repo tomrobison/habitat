@@ -387,7 +387,7 @@ fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
     let mut buffer = String::new();
 
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let mut line = output_format!(preamble &package_name, logkey "O");
+        let mut line = output_format!(preamble &package_name, logkey "O".to_string());
         line.push_str(&buffer);
         print!("{}", line);
         buffer.clear();

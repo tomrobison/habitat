@@ -42,9 +42,9 @@ impl Controller {
             config: config,
             exec_ctx: exec_ctx,
             handler: wonder::actor::Builder::new(SignalNotifier)
-                         .name("signal-handler".to_string())
-                         .start(())
-                         .unwrap(),
+                .name("signal-handler".to_string())
+                .start(())
+                .unwrap(),
             children: None,
         }
     }
@@ -173,9 +173,7 @@ impl Controller {
                     // the Task prints out a better "Started" message than
                     // we could (including ports etc)
                     Ok(_) => debug!("Started {}", &child.service_def.to_string()),
-                    Err(e) => {
-                        outputln!("Failed to start {}: {}", &child.service_def.to_string(), e)
-                    }
+                    Err(e) => outputln!("Failed to start {}: {}", &child.service_def.to_string(), e),
                 };
             }
         }
@@ -323,8 +321,7 @@ mod tests {
         // signals::send_signal_to_pid(*killpid, signals::Signal::SIGKILL).unwrap();
         assert!(wait_until_true(&mut controller, |c| {
             c.next_iteration().unwrap();
-            c.children.as_ref().unwrap()[0].starts > 1 &&
-            c.children.as_ref().unwrap()[1].starts > 1 &&
+            c.children.as_ref().unwrap()[0].starts > 1 && c.children.as_ref().unwrap()[1].starts > 1 &&
             c.children.as_ref().unwrap()[2].starts > 1
         }));
 

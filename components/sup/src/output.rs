@@ -64,9 +64,9 @@ pub fn set_no_color(booly: bool) {
 /// to print.
 pub struct StructuredOutput<'a> {
     preamble: &'a str,
-    logkey: &'static str,
+    logkey: String,
     line: u32,
-    file: &'static str,
+    file: String,
     column: u32,
     content: &'a str,
     pub verbose: Option<bool>,
@@ -76,9 +76,9 @@ pub struct StructuredOutput<'a> {
 impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
     pub fn new(preamble: &'a str,
-               logkey: &'static str,
+               logkey: String,
                line: u32,
-               file: &'static str,
+               file: String,
                column: u32,
                content: &'a str)
                -> StructuredOutput<'a> {
@@ -112,7 +112,7 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                 write!(f,
                        "{}({})[{}]: {}",
                        preamble_color.paint(self.preamble),
-                       White.bold().paint(self.logkey),
+                       White.bold().paint(self.logkey.clone()),
                        White.underline()
                            .paint(format!("{}:{}:{}", self.file, self.line, self.column)),
                        self.content)
@@ -131,7 +131,7 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                 write!(f,
                        "{}({}): {}",
                        preamble_color.paint(self.preamble),
-                       White.bold().paint(self.logkey),
+                       White.bold().paint(self.logkey.clone()),
                        self.content)
             } else {
                 write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)

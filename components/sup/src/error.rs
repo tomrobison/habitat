@@ -61,8 +61,8 @@ static LOGKEY: &'static str = "ER";
 /// for every type of error we produce. It also stores the location the error was created.
 pub struct SupError {
     pub err: Error,
-    logkey: &'static str,
-    file: &'static str,
+    logkey: String,
+    file: String,
     line: u32,
     column: u32,
 }
@@ -70,12 +70,7 @@ pub struct SupError {
 impl SupError {
     /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
     /// called directly.
-    pub fn new(err: Error,
-               logkey: &'static str,
-               file: &'static str,
-               line: u32,
-               column: u32)
-               -> SupError {
+    pub fn new(err: Error, logkey: String, file: String, line: u32, column: u32) -> SupError {
         SupError {
             err: err,
             logkey: logkey,
@@ -141,9 +136,7 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::ActorError(ref err) => format!("Actor returned error: {:?}", err),
-            Error::ExecCommandNotFound(ref c) => {
-                format!("`{}' was not found on the filesystem or in PATH", c)
-            }
+            Error::ExecCommandNotFound(ref c) => format!("`{}' was not found on the filesystem or in PATH", c),
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::HandlebarsTemplateFileError(ref err) => format!("{:?}", err),
@@ -153,21 +146,13 @@ impl fmt::Display for SupError {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HealthCheck(ref e) => format!("Health Check failed: {}", e),
-            Error::HookFailed(ref t, ref e, ref o) => {
-                format!("Hook failed to run: {}, {}, {}", t, e, o)
-            }
+            Error::HookFailed(ref t, ref e, ref o) => format!("Hook failed to run: {}, {}, {}", t, e, o),
             Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
-            Error::InvalidBinding(ref binding) => {
-                format!("Invalid binding - must be ':' delimited: {}", binding)
-            }
-            Error::InvalidKeyParameter(ref e) => {
-                format!("Invalid parameter for key generation: {:?}", e)
-            }
+            Error::InvalidBinding(ref binding) => format!("Invalid binding - must be ':' delimited: {}", binding),
+            Error::InvalidKeyParameter(ref e) => format!("Invalid parameter for key generation: {:?}", e),
             Error::InvalidPidFile => format!("Invalid child process PID file"),
-            Error::InvalidServiceGroupString(ref e) => {
-                format!("Invalid service group string: {}", e)
-            }
+            Error::InvalidServiceGroupString(ref e) => format!("Invalid service group string: {}", e),
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
             Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
@@ -200,9 +185,7 @@ impl fmt::Display for SupError {
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
-            Error::TomlParser(ref errs) => {
-                format!("Failed to parse toml:\n{}", toml_parser_string(errs))
-            }
+            Error::TomlParser(ref errs) => format!("Failed to parse toml:\n{}", toml_parser_string(errs)),
             Error::TryRecvError(ref err) => format!("{}", err),
             Error::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
             Error::UnpackFailed => format!("Failed to unpack a package"),
@@ -211,9 +194,9 @@ impl fmt::Display for SupError {
         let cstring = Red.bold().paint(content).to_string();
         let progname = PROGRAM_NAME.as_str();
         let mut so = StructuredOutput::new(progname,
-                                           self.logkey,
+                                           self.logkey.clone(),
                                            self.line,
-                                           self.file,
+                                           self.file.clone(),
                                            self.column,
                                            &cstring);
         so.verbose = Some(true);
@@ -283,9 +266,27 @@ impl From<net::AddrParseError> for SupError {
     }
 }
 
+extern crate backtrace;
+use backtrace::{Backtrace, Symbol};
 impl From<common::Error> for SupError {
     fn from(err: common::Error) -> SupError {
-        sup_error!(Error::HabitatCommon(err))
+        let current_backtrace = Backtrace::new();
+        println!("{:?}", &current_backtrace);
+        let frame = &current_backtrace.frames()[3];
+        let sym = &frame.symbols()[0];
+        let name =  sym.name().unwrap();
+        let filename = &sym.filename().as_ref().unwrap().to_str().unwrap().to_string();
+        let line = &sym.lineno().unwrap();
+        let newerr = Error::HabitatCommon(err);
+        SupError { err: newerr, logkey: name.to_string(), file: filename.clone(), line: *line, column: 0 }
+
+        /*
+        let name =  sym.name().as_ref().unwrap().as_str().unwrap().to_string();
+        let filename = &sym.filename().as_ref().unwrap().to_str().unwrap().to_string();
+        //let () = filename;
+        */
+        //sup_error!(Error::HabitatCommon(err))
+        //SupError { err: err.err, logkey: err.logkey, line: err.line, column: err.column  .. err }
     }
 }
 

@@ -61,6 +61,7 @@ extern crate urlencoded;
 extern crate openssl;
 #[macro_use]
 extern crate lazy_static;
+extern crate backtrace;
 
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.
@@ -68,7 +69,7 @@ macro_rules! sup_error {
     ($p: expr) => {
         {
             use $crate::error::SupError;
-            SupError::new($p, LOGKEY, file!(), line!(), column!())
+            SupError::new($p, String::from(LOGKEY), String::from(file!()), line!(), column!())
         }
     }
 }
@@ -81,9 +82,9 @@ macro_rules! output {
             use $crate::output::StructuredOutput;
             use $crate::PROGRAM_NAME;
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             print!("{}", so);
@@ -93,9 +94,9 @@ macro_rules! output {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             print!("{}", so);
@@ -107,9 +108,9 @@ macro_rules! output {
             use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             print!("{}", so);
@@ -120,9 +121,9 @@ macro_rules! output {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             print!("{}", so);
@@ -138,9 +139,9 @@ macro_rules! outputln {
             use $crate::output::StructuredOutput;
             use $crate::PROGRAM_NAME;
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             println!("{}", so);
@@ -150,9 +151,9 @@ macro_rules! outputln {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             println!("{}", so);
@@ -164,9 +165,9 @@ macro_rules! outputln {
             use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             println!("{}", so);
@@ -177,9 +178,9 @@ macro_rules! outputln {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             println!("{}", so);
@@ -195,9 +196,9 @@ macro_rules! output_format {
             use $crate::output::StructuredOutput;
             use $crate::PROGRAM_NAME;
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             format!("{}", so)
@@ -207,9 +208,9 @@ macro_rules! output_format {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            $content);
             format!("{}", so)
@@ -221,7 +222,7 @@ macro_rules! output_format {
             let so = StructuredOutput::new($preamble,
                                            $logkey,
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            "");
             format!("{}", so)
@@ -234,9 +235,9 @@ macro_rules! output_format {
             use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             format!("{}", so)
@@ -247,9 +248,9 @@ macro_rules! output_format {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
             let so = StructuredOutput::new($preamble,
-                                           LOGKEY,
+                                           String::from(LOGKEY),
                                            line!(),
-                                           file!(),
+                                           String::from(file!()),
                                            column!(),
                                            &content);
             format!("{}", so)

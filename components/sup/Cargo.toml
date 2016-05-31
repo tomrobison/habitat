@@ -15,6 +15,7 @@ doc = false
 name = "functional"
 
 [dependencies]
+backtrace = "*"
 rustc-serialize = "*"
 log = "*"
 env_logger = "*"
