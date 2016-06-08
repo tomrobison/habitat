@@ -1,7 +1,0 @@
-package user;
-
-message User {
-  required string user_name = 1;
-  required string email = 2;
-}
-

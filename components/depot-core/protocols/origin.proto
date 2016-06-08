@@ -1,7 +1,0 @@
-package origin;
-
-message Origin {
-  required string name = 1;
-  repeated User members = 2;
-}
-
