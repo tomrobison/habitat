@@ -1,15 +1,15 @@
 pkg_name=openssl
 pkg_distname=$pkg_name
-pkg_origin=core
-pkg_version=1.0.2h
+pkg_origin=fips
+pkg_version=1.0.1s
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_description="OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library."
 pkg_license=('OpenSSL')
 pkg_source=https://www.openssl.org/source/${pkg_distname}-${pkg_version}.tar.gz
-pkg_shasum=1d4007e53aad94a5b2002fe045ee7bb0b3d98f1a47f8b2bc851dcd1c74332919
+pkg_shasum=e7e81d82f3cd538ab0cdba494006d44aab9dd96b7f6233ce9971fb7c7916d511
 pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(core/glibc core/zlib core/cacerts)
-pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep core/perl)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep core/perl fips/openssl-fips)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -30,6 +30,11 @@ _common_prepare() {
   grep -lr '/bin/rm' . | while read f; do
     sed -e 's,/bin/rm,rm,g' -i "$f"
   done
+
+  # Purge the codebase (mostly tests) of the hardcoded reliance on `/bin/rm`.
+  grep -lr '/bin/rm' $(pkg_path_for openssl-fips) | while read f; do
+    sed -e 's,/bin/rm,rm,g' -i "$f"
+  done
 }
 
 do_prepare() {
@@ -45,12 +50,11 @@ do_build() {
   ./config \
     --prefix=${pkg_prefix} \
     --openssldir=ssl \
-    no-idea \
-    no-mdc2 \
-    no-rc5 \
+    --with-fipsdir=$(pkg_path_for openssl-fips) \
+    no-asm \
     zlib \
+    fips \
     shared \
-    disable-gost \
     $CFLAGS \
     $LDFLAGS
   env CC= make depend
