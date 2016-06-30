@@ -1,12 +1,12 @@
 pkg_name=ruby
-pkg_origin=core
-pkg_version=2.3.1
+pkg_origin=fips
+pkg_version=2.2.5
 pkg_license=('ruby')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://cache.ruby-lang.org/pub/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=b87c738cb2032bf4920fef8e3864dc5cf8eae9d89d8d523ce0236945c5797dcd
-pkg_deps=(core/glibc core/ncurses core/zlib core/libedit core/openssl core/libyaml
+pkg_shasum=30c4b31697a4ca4ea0c8db8ad30cf45e6690a0f09687e5d483c933c03ca335e3
+pkg_deps=(core/glibc core/ncurses core/zlib core/libedit fips/openssl core/libyaml
           core/libiconv core/libffi)
 pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed)
 pkg_lib_dirs=(lib)
@@ -25,7 +25,7 @@ do_build() {
                 --disable-install-doc \
                 --without-gmp \
                 --without-gdbm \
-                --with-openssl-dir=$(_resolve_dependency core/openssl) \
+                --with-openssl-dir=$(_resolve_dependency fips/openssl) \
                 --with-libyaml-dir=$(_resolve_dependency core/libyaml)
     make
 }
