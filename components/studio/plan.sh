@@ -5,7 +5,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
-pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static core/hab)
+pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox core/hab)
 pkg_bin_dirs=(bin)
 
 do_build() {
