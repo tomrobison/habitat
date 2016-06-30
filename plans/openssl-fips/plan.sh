@@ -24,12 +24,3 @@ do_build() {
   ./config no-asm --prefix=$pkg_prefix
   make
 }
-
-# do_stip() {
-#   do_default_stip
-
-#   # Purge the codebase (mostly tests) of the hardcoded reliance on `/bin/rm`.
-#   grep -lr '/bin/rm' . | while read f; do
-#     sed -e 's,/bin/rm,rm,g' -i "$f"
-#   done
-# }

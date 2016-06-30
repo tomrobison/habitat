@@ -30,11 +30,6 @@ _common_prepare() {
   grep -lr '/bin/rm' . | while read f; do
     sed -e 's,/bin/rm,rm,g' -i "$f"
   done
-
-  # Purge the codebase (mostly tests) of the hardcoded reliance on `/bin/rm`.
-  grep -lr '/bin/rm' $(pkg_path_for openssl-fips) | while read f; do
-    sed -e 's,/bin/rm,rm,g' -i "$f"
-  done
 }
 
 do_prepare() {
