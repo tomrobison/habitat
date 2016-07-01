@@ -8,7 +8,7 @@
 #
 # # Synopsis
 #
-# Create a Mesos application from a set of Habitat packages.
+# Create an application tarball archive from a set of Habitat packages.
 #
 # # License and Copyright
 #
@@ -47,7 +47,7 @@ print_help() {
 
 $author
 
-Habitat Package Tarize - Create a Tarball from a set of Habitat packages
+Habitat Package Tarize - Create a tarball archive from a set of Habitat packages
 
 USAGE:
   $program [FLAGS] [OPTIONS] <PKG_IDENT>
@@ -86,7 +86,7 @@ find_system_commands() {
     if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
       _mktemp_cmd=/bin/mktemp
     else
-      exit_with "We require GNU mktemp to build Mesos applications; aborting" 1
+      exit_with "We require GNU mktemp to build application archive; aborting" 1
     fi
   fi
 }
@@ -107,7 +107,7 @@ parse_options() {
   done
   if [ "$PKG" == "unknown" ]; then
     print_help
-    exit_with "You must specify one or more Habitat packages to Mesosize." 1
+    exit_with "You must specify one or more Habitat packages to archive." 1
   fi
 }
 
@@ -118,7 +118,7 @@ build_tarball_image() {
   env PKGS="$PKG" NO_MOUNT=1 hab studio -r $TARBALL_CONTEXT -t bare new
   echo $PKG > $TARBALL_CONTEXT/.hab_pkg
   popd > /dev/null
-  tar -czpf $(package_name_with_version $PKG).tgz -C $TARBALL_CONTEXT ./
+  tar -czpf $(package_name_with_version $PKG).tar.gz -C $TARBALL_CONTEXT ./
 }
 
 package_name_with_version() {

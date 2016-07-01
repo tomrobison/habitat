@@ -28,7 +28,7 @@ do_install() {
   lbb="$pkg_prefix/libexec/busybox"
 
   # Install a copy of a statically built busybox under `libexec/`
-  install -v -D $(pkg_path_for busybox-static)/bin/busybox $lbb
+  install -v -D $(pkg_path_for busybox)/bin/busybox $lbb
 
   hab_dir=$(cat $(pkg_path_for hab)/IDENT | tr '/' '-')
   install -v -D $(pkg_path_for hab)/bin/hab \
